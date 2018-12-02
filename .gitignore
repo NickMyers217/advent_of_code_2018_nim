@@ -1,2 +1,11 @@
 /src/nimcache/
 /tests/nimcache/
+
+/tests/*
+!/tests/*.nim
+!/tests/*.nims
+
+/src/*
+!/src/*.nim
+!/src/*.nims
+
