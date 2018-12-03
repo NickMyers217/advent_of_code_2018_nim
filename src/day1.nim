@@ -32,14 +32,14 @@ proc firstRecurringFrequency*(data: seq[int]): int =
         seen.incl(curFrequency)
     nextFrequency = curFrequency
 
-proc partOneAnswer*(inputFile: string): int =
+proc getPartOneAnswer*(inputFile: string): int =
   ## Cacluate the answer for part 1
   inputFile
     .readFile()
     .parseInput()
     .calcFrequency()
 
-proc partTwoAnswer*(inputFile: string): int =
+proc getPartTwoAnswer*(inputFile: string): int =
   ## Cacluate the answer for part 2
   inputFile
     .readFile()

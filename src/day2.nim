@@ -5,7 +5,7 @@ proc hasLetterCount*(id: string, count: int): bool =
   result = false
   for n in id.toCountTable().values():
     if n == count:
-      result = true
+      return true
 
 proc getChecksum*(data: seq[string]): int =
   ## Caclulate the checksum for `data`
@@ -35,7 +35,7 @@ proc getTargetBoxLetters*(data: seq[string]): string =
           indexDifferentAt = i
 
         if lettersDifferent > 1:
-          break;
+          break
 
       if lettersDifferent != 1:
         continue

@@ -18,7 +18,7 @@ suite "Day 1 tests":
     check(frequency == 7)
 
   test "Can log the answer for part one":
-    echo("\t==> Part 1 Answer: ", partOneAnswer("res/day1.txt"))
+    echo("\t==> Part 1 Answer: ", getPartOneAnswer("res/day1.txt"))
     require(true)
 
   test "Can find the first recurring frequency":
@@ -29,6 +29,6 @@ suite "Day 1 tests":
       firstRecurringFrequency(@[7, 7, -2, -7, -4]) == 14
 
   test "Can log the answer for part two":
-    echo("\t==> Part 2 Answer: ", partTwoAnswer("res/day1.txt"))
+    echo("\t==> Part 2 Answer: ", getPartTwoAnswer("res/day1.txt"))
     require(true)
 
