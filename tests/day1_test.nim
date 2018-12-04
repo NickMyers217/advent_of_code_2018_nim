@@ -1,4 +1,4 @@
-import src/day1
+import ../src/day1
 
 import unittest
 

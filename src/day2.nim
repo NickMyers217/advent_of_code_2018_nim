@@ -56,3 +56,6 @@ proc getPartTwoAnswer*(filePath: string): string =
     .splitLines()
     .getTargetBoxLetters()
 
+when isMainModule:
+  echo getPartOneAnswer("res/day2.txt")
+  echo getPartTwoAnswer("res/day2.txt")

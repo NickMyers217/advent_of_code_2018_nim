@@ -1,6 +1,6 @@
 import unittest, sequtils
 
-import src/day2
+import ../src/day2
 
 const
   testData = @[

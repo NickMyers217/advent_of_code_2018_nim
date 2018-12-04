@@ -46,3 +46,6 @@ proc getPartTwoAnswer*(inputFile: string): int =
     .parseInput()
     .firstRecurringFrequency()
 
+when isMainModule:
+  echo getPartOneAnswer("res/day1.txt")
+  echo getPartTwoAnswer("res/day1.txt")

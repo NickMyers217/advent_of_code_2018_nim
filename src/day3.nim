@@ -95,3 +95,6 @@ proc printAnswers*(filePath: string): void =
   assert nonOverlaps.len() == 1
   echo "\t==> Answer Part Two: ", nonOverlaps[0].id
 
+
+when isMainModule:
+  printAnswers("res/day3.txt")
