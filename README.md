@@ -6,6 +6,14 @@ The best way for me to pick up a new language is to jump right in and solve some
 
 The problems are on the [AOC website](https://adventofcode.com/2018/).
 
+While many people approach AOC competitively and try to solve the problems for speed, my code is optimized for different goals.
+- The code is developed with TDD
+- All the code is documented and readable for educational purposes
+- In an effort to learn as much about the language as possible, I may choose unorthodox solutions
+- The code attempts to be idiomatic to the Nim community's coding conventions (learning as I go)
+
+Most of these goals are at the expense of speed.
+
 ### Dependencies
  - The Nim compiler is installed and in your path
  - The Nimble package manager is installed and in your path
