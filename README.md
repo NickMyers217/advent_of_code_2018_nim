@@ -27,4 +27,17 @@ $ cd advent_of_code_2018_nim
 $ nimble test
 ```
 
-That will run the tests which print out all of the answers.
+That will run all the unite tests for the entire project.
+
+If you want to run the tests for a specific problem use this command and a pick a day:
+
+```sh
+$ nimble c -r tests/day1_test.nim
+```
+
+If you just want to see the answers, run the src file directly:
+
+```sh
+$ nimble c -r src/day1.nim
+```
+
