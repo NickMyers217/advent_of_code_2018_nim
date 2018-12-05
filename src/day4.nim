@@ -1,10 +1,8 @@
-import strutils, sequtils, times, algorithm, tables
-
+import strutils, strscans, sequtils, times, algorithm, tables
 
 type
   ## The types of messages we can find in the logs
-  MessageKind* = enum
-    shiftBegin, fallAsleep, wakeUp
+  MessageKind* = enum shiftBegin, fallAsleep, wakeUp
 
   ## A message after being parsed from the log
   Message* = object
@@ -31,32 +29,23 @@ type
 
 proc initMessage*(message: string): Message =
   ## Initialize a Message from a string
-  let hashLocation = message.find('#')
-  if hashLocation > -1:
-    let
-      spaceLocation = message.find(' ', hashLocation)
-      id = parseInt(message[hashLocation+1 .. spaceLocation-1])
-    Message(kind: shiftBegin, guardId: id)
-  elif message.find("falls") > -1:
-    Message(kind: fallAsleep, text: message)
-  else:
-    Message(kind: wakeUp, text: message)
+  var id: int
+  if message.scanf("Guard #$i begins shift", id): Message(kind: shiftBegin, guardId: id)
+  elif message == "falls asleep": Message(kind: fallAsleep, text: message)
+  else: Message(kind: wakeUp, text: message)
 
 proc `$`*(message: Message): string =
   ## Render a Message as a string
   result = ""
   case message.kind
-  of shiftBegin:
-    result = "Guard #" & $message.guardId & " begins shift"
-  of wakeUp, fallAsleep:
-    result = message.text
+  of shiftBegin: result = "Guard #" & $message.guardId & " begins shift"
+  of wakeUp, fallAsleep: result = message.text
 
 
 proc newGuard*(id: int): Guard =
   ## Make a new Guard
   var arr: array[60, int]
-  for i in 0..59:
-    arr[i] = 0
+  for i in 0..59: arr[i] = 0
   result = Guard(id: id, minutes: arr)
 
 proc `$`*(guard: Guard): string =
@@ -77,21 +66,24 @@ proc getMostSleptMinute*(guard: Guard): int =
 
 proc initLogEntry*(entry: string): LogEntry =
   ## Initialize a log entry from a string
-  let
-    startI = entry.find('[') + 1
-    endI = entry.find(']') - 1
-    dateString = entry[startI .. endI]
-    date = parse(dateString, "yyyy-MM-dd HH:mm", utc())
-    messageString = entry.substr(endI + 2).strip()
-    message = initMessage(messageString)
-  result = LogEntry(date: date, message: message)
+  var dateString, messageString: string
+
+  if entry.scanf("[$+] $+", dateString, messageString):
+    let
+      date = parse(dateString, "yyyy-MM-dd HH:mm", utc())
+      message = initMessage(messageString)
+    result = LogEntry(date: date, message: message)
+  else:
+    # I really shouldn't be in here, probably should throw an exception...
+    assert false
 
 
 iterator walkSleeps*(log: Log, debugLog: bool = false): (int, int) =
   ## Yields every minute that a guard was sleeping in the logs
   ## in the form (guardId: int, minute: int)
-  var guardOnDuty = 0
-  var startedSleepAtMinute = 0
+  var
+    guardOnDuty = 0
+    startedSleepAtMinute = 0
   for entry in log.entries:
     if entry.message.kind == shiftBegin:
       guardOnDuty = entry.message.guardId
@@ -111,23 +103,17 @@ iterator walkSleeps*(log: Log, debugLog: bool = false): (int, int) =
 
 proc newLog*(logs: seq[string]): Log =
   ## Create a new Log from the lines of the log file
-  var entries = logs.map(initLogEntry)
-  entries.sort(
-    proc(a, b: LogEntry): int = (if $a.date < $b.date: -1 elif $a.date == $b.date: 0 else: 1)
-  )
-
-  var log = Log(entries: entries, guards: initTable[int, Guard]())
+  var
+    entries = logs.map(initLogEntry).sorted(
+      proc(a, b: LogEntry): int = (if $a.date < $b.date: -1 elif $a.date == $b.date: 0 else: 1)
+    )
+    log = Log(entries: entries, guards: initTable[int, Guard]())
 
   ## Walk all the sleeps in entries and populate the guards lookup accordingly
   for sleep in log.walkSleeps():
     let (guardId, min) = sleep
-
-    ## We should only be looking at minutes 0 - 59
-    assert min >= 0 and min < 60
-
-    ## Make sure we insert a new guard for this id if needed
+    assert min >= 0 and min < 60 # We should only be looking at minutes 0 - 59
     discard log.guards.mgetOrPut(guardId, newGuard(guardId))
-
     var guard: Guard = log.guards[guardId]
     guard.minutes[min] += 1
 
@@ -163,19 +149,19 @@ proc getMostFrequentlySleptMinute*(log: Log): (int, Guard) =
 
 proc printAnswers*(filePath: string): void =
   ## Solve the problems and log the answers
-  let input = filePath
+  var log = filePath
     .readFile()
     .splitLines()
     .filter(proc(e: string): bool = e != "")
-  var log = newLog(input)
+    .newLog()
+
   let
     guard = log.findSleepiestGuard()
     minute = guard.getMostSleptMinute()
-  echo guard.id * minute
+    (minute2, guard2) = log.getMostFrequentlySleptMinute()
 
-  let (minute2, guard2) = log.getMostFrequentlySleptMinute()
+  echo guard.id * minute
   echo minute2 * guard2.id
-  
 
 when isMainModule:
   printAnswers("res/day4.txt")

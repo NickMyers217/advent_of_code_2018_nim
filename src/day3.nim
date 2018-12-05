@@ -26,13 +26,7 @@ proc initRect*(input: string): Rect =
 
   assert elements.len() == 5
 
-  Rect(
-    id: elements[0],
-    x: elements[1],
-    y: elements[2],
-    width: elements[3],
-    height: elements[4]
-  )
+  Rect(id: elements[0], x: elements[1], y: elements[2], width: elements[3], height: elements[4])
 
 proc `$`*(rect: Rect): string =
   ## Render a Rect as a string
@@ -87,13 +81,12 @@ proc printAnswers*(filePath: string): void =
   for rect in rects:
     grid.mark(rect)
 
-  echo "\t==> Answer Part One: ", grid.values.filter(proc(count: int): bool = count >= 2).len()
+  echo grid.values.filter(proc(count: int): bool = count >= 2).len()
 
-  let nonOverlaps = rects
-    .filter(proc(e: Rect): bool = grid.doesNotOverlap(e))
+  let nonOverlaps = rects.filter(proc(e: Rect): bool = grid.doesNotOverlap(e))
 
   assert nonOverlaps.len() == 1
-  echo "\t==> Answer Part Two: ", nonOverlaps[0].id
+  echo nonOverlaps[0].id
 
 
 when isMainModule:

@@ -37,14 +37,10 @@ suite "Day 2 tests":
   test "Can calculate a correct checksum":
     check(getChecksum(testData) == 12)
 
-  test "Can log the answer for part one":
-    echo("\t==> Answer Part 1: ", getPartOneAnswer("res/day2.txt"))
-    require(true)
-
   test "Can find the common letters from the correct ids":
     check(getTargetBoxLetters(moreTestData) == "fgij")
 
-  test "Can log the answer for part two":
-    echo("\t==> Answer Part 2: ", getPartTwoAnswer("res/day2.txt"))
+  test "Can print the answers":
+    printAnswers("res/day2.txt")
     require(true)
 

@@ -32,20 +32,11 @@ proc firstRecurringFrequency*(data: seq[int]): int =
         seen.incl(curFrequency)
     nextFrequency = curFrequency
 
-proc getPartOneAnswer*(inputFile: string): int =
-  ## Cacluate the answer for part 1
-  inputFile
-    .readFile()
-    .parseInput()
-    .calcFrequency()
-
-proc getPartTwoAnswer*(inputFile: string): int =
-  ## Cacluate the answer for part 2
-  inputFile
-    .readFile()
-    .parseInput()
-    .firstRecurringFrequency()
+proc printAnswers*(filePath: string): void =
+  ## Print the answers
+  let input = filePath.readFile().parseInput()
+  echo input.calcFrequency()
+  echo input.firstRecurringFrequency()
 
 when isMainModule:
-  echo getPartOneAnswer("res/day1.txt")
-  echo getPartTwoAnswer("res/day1.txt")
+  printAnswers("res/day1.txt")

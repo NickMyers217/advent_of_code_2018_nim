@@ -4,13 +4,13 @@ proc hasLetterCount*(id: string, count: int): bool =
   ## Determine if a string has at least one char that appears `count` times
   result = false
   for n in id.toCountTable().values():
-    if n == count:
-      return true
+    if n == count: return true
 
 proc getChecksum*(data: seq[string]): int =
   ## Caclulate the checksum for `data`
-  let twoCount = data.filter(proc(e: string): bool = e.hasLetterCount(2)).len
-  let threeCount = data.filter(proc(e: string): bool = e.hasLetterCount(3)).len
+  let
+    twoCount = data.filter(proc(e: string): bool = e.hasLetterCount(2)).len
+    threeCount = data.filter(proc(e: string): bool = e.hasLetterCount(3)).len
   twoCount * threeCount
 
 proc getTargetBoxLetters*(data: seq[string]): string =
@@ -33,29 +33,18 @@ proc getTargetBoxLetters*(data: seq[string]): string =
         if idOne[i] != idTwo[i]:
           lettersDifferent += 1
           indexDifferentAt = i
-
         if lettersDifferent > 1:
           break
 
-      if lettersDifferent != 1:
-        continue
-      else:
+      if lettersDifferent == 1:
         return idOne[idOne.low() .. indexDifferentAt - 1] & idOne[indexDifferentAt + 1 .. idOne.high()]
 
-proc getPartOneAnswer*(filePath: string): int =
-  ## Get the answer for the first part
-  filePath
-    .readFile()
-    .splitLines()
-    .getChecksum()
-
-proc getPartTwoAnswer*(filePath: string): string =
-  ## Get the answer for the second part
-  filePath
-    .readFile()
-    .splitLines()
-    .getTargetBoxLetters()
+proc printAnswers*(filePath: string): void =
+  ## Print the answers
+  let data = filePath.readFile().splitLines()
+  echo data.getChecksum()
+  echo data.getTargetBoxLetters()
 
 when isMainModule:
-  echo getPartOneAnswer("res/day2.txt")
-  echo getPartTwoAnswer("res/day2.txt")
+  printAnswers("res/day2.txt")
+

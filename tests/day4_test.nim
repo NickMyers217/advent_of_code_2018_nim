@@ -45,14 +45,14 @@ suite "Day 4 tests":
 
     for i in 0 .. log.entries.len() - 2:
       check($log.entries[i] < $log.entries[int(i) + 1])
-    
+
     check:
       log.guards.len() == 2
       log.guards.hasKey(10)
       log.guards.hasKey(99)
       log.guards[10].minutes == [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0]
       log.guards[99].minutes == [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0]
-  
+
   test "Can find how many total minutes a guard slept":
     let log = newLog(testData)
     check:
@@ -72,12 +72,12 @@ suite "Day 4 tests":
       guard = newLog(testData).findSleepiestGuard()
       minute = guard.getMostSleptMinute()
     check(guard.id * minute == 240)
-  
+
   test "Can find the guard who is most frequently asleep on a given minute":
     let (guard, count) = newLog(testData).getGuardMostAsleepOnMinute(45)
     check(guard.id == 99)
     check(count == 3)
-  
+
   test "Can find the minute that was most frequently slept by a guard":
     let (minute, guard) = newLog(testData).getMostFrequentlySleptMinute()
     check:
@@ -88,4 +88,3 @@ suite "Day 4 tests":
   test "Can print the answers":
     printAnswers("res/day4.txt")
     require(true)
-      
