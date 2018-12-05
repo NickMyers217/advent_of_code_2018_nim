@@ -36,27 +36,29 @@ proc trigger*(polymer: var string, reactionCount: int = 0): void =
     if reactions == 0 or (reactionCount > 0 and reactions >= reactionCount):
       itsTimeToStop = true
 
-proc compact*(polymer:string, aType: char): int =
+proc compact*(polymer:string, aType: char, output: bool = true): int =
   ## Returns the length of the polymer left over after removing `aType` and fully reacting
-  echo "Compacting " & aType & "..."
+  if output: echo "Compacting " & aType & "..."
   var copy = polymer.eliminate(aType)
   copy.trigger()
-  echo "Finished compacting " & aType & " with len " & $copy.len()
+  if output:
+    echo "Finished compacting " & aType & " with len " & $copy.len()
   result = copy.len() - 1
-  
-proc findMostCompact*(polymer: string): int =
+
+proc findMostCompact*(polymer: string, output: bool = true): int =
   ## Find the most compact polymer possible by trying to eliminate a type
 
   # Compact a polymer using each possible type
   # do it it in paralell to get things dones faster
   var lengths: seq[FlowVar[int]] = @[]
-  for aType in 'a' .. 'z': lengths.add(spawn polymer.compact(aType))
+  for aType in 'a' .. 'z':
+    lengths.add(spawn polymer.compact(aType, output))
   sync()
 
   result = polymer.len()
   for l in lengths:
     if ^l < result: result = ^l
-     
+
 proc printAnswers*(filePath: string): void =
   ## Prints the answers!
   let input = readFile(filePath)

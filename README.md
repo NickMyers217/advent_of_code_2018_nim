@@ -18,6 +18,9 @@ Most of these goals are at the expense of speed.
  - The Nim compiler is installed and in your path
  - The Nimble package manager is installed and in your path
 
+It is worth noting that I am doing all of my work on a 64bit arch linux system.
+I do not know how well this code will run on Windows/Mac, and do not really have the will to test it on those platforms.
+
 ### Installation
 Install the above dependencies and then hop over to the shell to run:
 

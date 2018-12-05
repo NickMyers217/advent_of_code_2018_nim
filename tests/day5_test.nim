@@ -19,15 +19,16 @@ suite "Day 5 tests":
       isReaction("ab") == false
       isReaction("cF") == false
       isReaction("zZ") == true
-  
+
   test "Can iterate the units of a polymer":
-    var units: seq[string]
-    for i, unit in testData[3].unitPairs(): units.add(unit)
+    var units: seq[string] = @[]
+    for i, unit in testData[3].unitPairs():
+      units.add(unit)
     check(units == @[ "da", "ab", "bC", "CB", "BA", "Ac", "ca", "aD", "DA" ])
     units = @[]
     for i, unit in "aBc".unitPairs(): units.add(unit)
     check(units == @[ "aB", "Bc"])
-  
+
   test "Can trigger the first reaction in a polymer":
     var polymer = testData[0]
     polymer.trigger(1)
@@ -36,7 +37,7 @@ suite "Day 5 tests":
     check(polymer == testData[2])
     polymer.trigger(1)
     check(polymer == testData[3])
-  
+
   test "Can exhaust all the reactions in a polymer":
     var polymer = testData[0]
     polymer.trigger()
@@ -48,7 +49,7 @@ suite "Day 5 tests":
       testData[1].len() == 14
       testData[2].len() == 12
       testData[3].len() == 10
-  
+
   test "Can eliminate a type from a polymer":
     var polymer = testData[0]
     check:
@@ -57,15 +58,15 @@ suite "Day 5 tests":
       polymer.eliminate('c') == "dabAaBAaDA"
       polymer.eliminate('d') == "abAcCaCBAcCcaA"
       polymer.eliminate('e') == "dabAcCaCBAcCcaDA"
-  
+
   test "Can compact a polymer and find its length":
     var polymer = testData[0]
     check:
-      polymer.compact('a') == 5
-      polymer.compact('b') == 7
-      polymer.compact('c') == 3
-      polymer.compact('d') == 5
-  
+      polymer.compact('a', false) == 5
+      polymer.compact('b', false) == 7
+      polymer.compact('c', false) == 3
+      polymer.compact('d', false) == 5
+
   test "Can find the most compact polymer":
     var polymer = testData[0]
-    check(polymer.findMostCompact() == 3)
+    check(polymer.findMostCompact(false) == 3)
