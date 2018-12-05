@@ -9,3 +9,4 @@
 !/src/*.nim
 !/src/*.nims
 
+build/
