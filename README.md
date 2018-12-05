@@ -9,7 +9,7 @@ The problems are on the [AOC website](https://adventofcode.com/2018/).
 While many people approach AOC competitively and try to solve the problems for speed, my code is optimized for different goals.
 - The code is developed with TDD
 - All the code is documented and readable for educational purposes
-- In an effort to learn as much about the language as possible, I may choose unnecessarily long, complex, and/or unorthodox solutions (please forgive me)
+- In an effort to learn as much about the language as possible, I may choose unnecessarily long, complex, imperformant, and/or unorthodox solutions (please forgive me)
 - The code attempts to be idiomatic to the Nim community's coding conventions (learning as I go)
 
 Most of these goals are at the expense of speed.
@@ -27,7 +27,7 @@ $ cd advent_of_code_2018_nim
 $ nimble test
 ```
 
-That will run all the unite tests for the entire project.
+That will run all the unit tests for the entire project.
 
 If you want to run the tests for a specific problem use this command and a pick a day:
 
@@ -38,6 +38,5 @@ $ nimble c -r tests/day1_test.nim
 If you just want to see the answers, run the src file directly:
 
 ```sh
-$ nimble c -r src/day1.nim
+$ nimble c -r -d:release src/day1.nim
 ```
-
