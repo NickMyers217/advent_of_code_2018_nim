@@ -20,28 +20,8 @@ suite "Day 5 tests":
       isReaction("cF") == false
       isReaction("zZ") == true
 
-  test "Can iterate the units of a polymer":
-    var units: seq[string] = @[]
-    for i, unit in testData[3].unitPairs():
-      units.add(unit)
-    check(units == @[ "da", "ab", "bC", "CB", "BA", "Ac", "ca", "aD", "DA" ])
-    units = @[]
-    for i, unit in "aBc".unitPairs(): units.add(unit)
-    check(units == @[ "aB", "Bc"])
-
-  test "Can trigger the first reaction in a polymer":
-    var polymer = testData[0]
-    polymer.trigger(1)
-    check(polymer == testData[1])
-    polymer.trigger(1)
-    check(polymer == testData[2])
-    polymer.trigger(1)
-    check(polymer == testData[3])
-
   test "Can exhaust all the reactions in a polymer":
-    var polymer = testData[0]
-    polymer.trigger()
-    check(polymer == testData[3])
+    check(testData[0].trigger() == testData[3])
 
   test "Can count the amount of units in a polymer":
     check:
@@ -70,3 +50,7 @@ suite "Day 5 tests":
   test "Can find the most compact polymer":
     var polymer = testData[0]
     check(polymer.findMostCompact(false) == 3)
+
+  test "Can print the answers!":
+    printAnswers("res/day5.txt")
+    require(true)

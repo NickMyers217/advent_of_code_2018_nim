@@ -1,51 +1,41 @@
 import strutils, threadpool, sequtils
 
-proc isReaction*(unit: string): bool =
-  ## Determine if a unit is going to react
-  assert unit.len() == 2
+proc isReaction*(unitA: char, unitB: char): bool =
+  ## Determine if a unit pair is going to react
   # capital letters are 32 spaces behind their lowercase counterparts on the ascii table
-  result =
-    cmpIgnoreCase($unit[0], $unit[1]) == 0 and abs(ord(unit[0]) - ord(unit[1])) == 32
+  result = abs(ord(unitA) - ord(unitB)) == 32
 
-iterator unitPairs*(polymer: string): (int, string) =
-  ## Yield each unit pair of a polymer along with its index
-  for i in 0 .. polymer.len()-2:
-    yield (i, polymer.substr(i, i+1))
+proc isReaction*(unitPair: string): bool =
+  assert unitPair.len() == 2
+  result = isReaction(unitPair[0], unitPair[1])
 
 proc eliminate*(polymer: string, aType: char): string =
   ## Removes every instance of `type` from `polymer`
-  result = ""
-  for c in polymer:
-    if cmpIgnoreCase($c, $aType) != 0: result &= c
+  result = polymer.replace($aType, "").replace($aType.toUpperAscii(), "")
 
-# TODO: this is wayyyyyy too slow
-proc trigger*(polymer: var string, reactionCount: int = 0): void =
-  ## Triggers up to `reactionCount` reactions and shortens `polymer` accordingly
-  ## the reactions will stop if they are exhausted
-  ## if 0 is provided as the count, the polymer will exhaust all its reactions
-  var itsTimeToStop = false
-  while not itsTimeToStop:
-    var reactions = 0
-    for i, unit in polymer.unitPairs():
-      if unit.isReaction():
-        polymer.delete(i, i+1)
-        reactions += 1
-        break
-
-    # We need to stop if there were no reactions this time, or we hit the count
-    if reactions == 0 or (reactionCount > 0 and reactions >= reactionCount):
-      itsTimeToStop = true
+proc trigger*(polymer: string): string =
+  ## Builds a shortened polymer by exhausting all of the reactions in `polymer`
+  var
+    chars: seq[char] = @[]
+    curIndex = 0
+  for unit in polymer:
+    if curIndex > 0 and isReaction(unit, chars[chars.high]):
+      discard chars.pop()
+      curIndex -= 1
+    else:
+      chars.add(unit)
+      curIndex += 1
+  result = chars.join()
 
 proc compact*(polymer:string, aType: char, output: bool = true): int =
   ## Returns the length of the polymer left over after removing `aType` and fully reacting
   if output: echo "Compacting " & aType & "..."
-  var copy = polymer.eliminate(aType)
-  copy.trigger()
+  let copy = polymer.eliminate(aType).trigger()
   if output:
     echo "Finished compacting " & aType & " with len " & $copy.len()
   result = copy.len() - 1
 
-proc findMostCompact*(polymer: string, output: bool = true): int =
+proc findMostCompact*(polymer: string, output: bool = false): int =
   ## Find the most compact polymer possible by trying to eliminate a type
 
   # Compact a polymer using each possible type
@@ -64,8 +54,7 @@ proc printAnswers*(filePath: string): void =
   let input = readFile(filePath)
 
   var polymer = input
-  polymer.trigger()
-  echo polymer.len() - 1
+  echo polymer.trigger().len() - 1
 
   var anotherPolymer = input
   echo anotherPolymer.findMostCompact()
