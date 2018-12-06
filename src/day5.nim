@@ -33,7 +33,7 @@ proc compact*(polymer:string, aType: char, output: bool = true): int =
   let copy = polymer.eliminate(aType).trigger()
   if output:
     echo "Finished compacting " & aType & " with len " & $copy.len()
-  result = copy.len() - 1
+  result = copy.len()
 
 proc findMostCompact*(polymer: string, output: bool = false): int =
   ## Find the most compact polymer possible by trying to eliminate a type
@@ -53,11 +53,14 @@ proc printAnswers*(filePath: string): void =
   ## Prints the answers!
   let input = readFile(filePath)
 
+  # NOTE: for some reason I had to subtract 1 from both the lengths,
+  # is it a \n or a \0 at the end of the file or something?
+  # have to make sure I am very careful about that in future problems...
   var polymer = input
   echo polymer.trigger().len() - 1
 
   var anotherPolymer = input
-  echo anotherPolymer.findMostCompact()
+  echo anotherPolymer.findMostCompact() - 1
 
 when isMainModule:
   printAnswers("res/day5.txt")

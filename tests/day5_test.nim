@@ -42,14 +42,14 @@ suite "Day 5 tests":
   test "Can compact a polymer and find its length":
     var polymer = testData[0]
     check:
-      polymer.compact('a', false) == 5
-      polymer.compact('b', false) == 7
-      polymer.compact('c', false) == 3
-      polymer.compact('d', false) == 5
+      polymer.compact('a', false) == 6
+      polymer.compact('b', false) == 8
+      polymer.compact('c', false) == 4
+      polymer.compact('d', false) == 6
 
   test "Can find the most compact polymer":
     var polymer = testData[0]
-    check(polymer.findMostCompact(false) == 3)
+    check(polymer.findMostCompact(false) == 4)
 
   test "Can print the answers!":
     printAnswers("res/day5.txt")
