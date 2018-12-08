@@ -49,7 +49,7 @@ suite "Day 7 tests":
   test "Can calculate the amount of time needed to complete the graph":
     let
       graph = initGraph(testData.map(initInstruction))
-      time = graph.kahnsAlgorithmWithScheduling(2, 0, true)
+      time = graph.kahnsAlgorithmWithScheduling(2, 0)
 
     check(time == 15)
 
