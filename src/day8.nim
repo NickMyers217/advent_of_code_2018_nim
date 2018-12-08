@@ -6,13 +6,6 @@ type
     children*: seq[Node]
     entries*: seq[int]
 
-func `$`*(node: Node): string =
-  result = "($1, $2, [ " % [ $node.header.nodeCount, $node.header.entryCount ]
-  for child in node.children:
-    result &= $child
-
-  result &= " ], " & $node.entries & "), "
-
 func initNode*(numbers: seq[int]): Node =
   # A node must have 2 numbers in the header, and at least 1 entry
   assert numbers.len >= 3
@@ -24,16 +17,13 @@ func initNode*(numbers: seq[int]): Node =
 
   proc walk(): Node {.closure.} =
     # Recursive closure to help walk the tree
-    if nums.len == 0:
-      return Node(header: (0, 0), children: @[], entries: @[])
-    var
-      nodeCount = nums.pop()
-      entryCount = nums.pop()
-    result = Node(header: (nodeCount, entryCount), children: @[], entries: @[])
-    for child in 0 ..< nodeCount:
+    if nums.len == 0: return Node(header: (0, 0), children: @[], entries: @[])
+    result =
+      Node(header: (nums.dequeue, nums.dequeue), children: @[], entries: @[])
+    for child in 0 ..< result.header.nodeCount:
       result.children.add(walk())
-    for entry in 0 ..< entryCount:
-      result.entries.add(nums.pop())
+    for entry in 0 ..< result.header.entryCount:
+      result.entries.add(nums.dequeue())
 
   result = walk()
 
@@ -61,7 +51,6 @@ proc printAnswers*(filePath: string) =
   let
     input = readFile(filePath).splitLines()[0]
     tree = initNode(input)
-
   echo tree.totalEntries()
   echo tree.getValue()
 
