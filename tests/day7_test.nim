@@ -5,7 +5,6 @@ import ../src/day7
 const testData = @[
   "Step C must be finished before step A can begin.",
   "Step C must be finished before step F can begin.",
-  "Step G must be finished before step F can begin.",
   "Step A must be finished before step B can begin.",
   "Step A must be finished before step D can begin.",
   "Step B must be finished before step E can begin.",
@@ -34,7 +33,7 @@ suite "Day 7 tests":
       if node.isEnd: endNodes.add(key)
 
     check:
-      startNodes == @['C', 'G']
+      startNodes == @['C']
       endNodes == @['E']
 
   test "Can walk the graph using Kahn's algorithm and build the correct list of steps":
@@ -45,5 +44,16 @@ suite "Day 7 tests":
     for c in output:
       check(c notin seen)
       seen.incl(c)
-    check(output == "CABDGFE")
+    check(output == "CABDFE")
+
+  test "Can calculate the amount of time needed to complete the graph":
+    let
+      graph = initGraph(testData.map(initInstruction))
+      time = graph.kahnsAlgorithmWithScheduling(2, 0, true)
+
+    check(time == 15)
+
+  test "Can print the answers":
+    printAnswers("res/day7.txt", true)
+    require(true)
 
