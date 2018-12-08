@@ -46,6 +46,7 @@ suite "Day 7 tests":
       seen.incl(c)
     check(output == "CABDFE")
 
+  # TODO: come up with some more robust test cases?
   test "Can calculate the amount of time needed to complete the graph":
     let
       graph = initGraph(testData.map(initInstruction))

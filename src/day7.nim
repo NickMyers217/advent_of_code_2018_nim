@@ -155,20 +155,22 @@ func kahnsAlgorithmWithScheduling*(
     if debug: echo "Time: ", time, " Tasks: ", depsMet
     for i in workers.low .. workers.high:
       handleWorker(workers[i], i)
+    # Double check and make sure there are no idle workers that could pick up tasks,
+    # sometimes the last worker frees up a bunch of stuff when the earlier ones were
+    # idle with nothing to do
+    for i in workers.low .. workers.high:
+      if workers[i].status == IDLE: handleWorker(workers[i], i)
     if debug: echo "\n"
     var times = workers
       .filter(proc(w: Worker): bool = w.status == BUSY)
       .map(proc(w: Worker): int = w.timeStarted + w.duration)
       .sorted(cmp[int])
     # step to the next time something will finish
-    if times.len > 0:
-      if debug: echo times
-      time = times[0]
+    if times.len > 0: time = times[0]
     else: inc time
 
   if debug: echo nodeOrder
   result = time - 1
-
 
 proc printAnswers*(filePath: string, debug: bool = false) =
   let
@@ -192,4 +194,4 @@ proc printAnswers*(filePath: string, debug: bool = false) =
   echo graph.kahnsAlgorithmWithScheduling(5, 60, debug)
 
 when isMainModule:
-  printAnswers("res/day7.txt", false)
+  printAnswers("res/day7.txt", true)
