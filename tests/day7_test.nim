@@ -54,6 +54,6 @@ suite "Day 7 tests":
     check(time == 15)
 
   test "Can print the answers":
-    printAnswers("res/day7.txt", true)
+    printAnswers("res/day7.txt", false)
     require(true)
 

@@ -192,4 +192,4 @@ proc printAnswers*(filePath: string, debug: bool = false) =
   echo graph.kahnsAlgorithmWithScheduling(5, 60, debug)
 
 when isMainModule:
-  printAnswers("res/day7.txt", true)
+  printAnswers("res/day7.txt", false)

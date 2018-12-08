@@ -5,4 +5,5 @@ import
   ./day4_test,
   ./day5_test,
   ./day6_test,
-  ./day7_test
+  ./day7_test,
+  ./day8_test
