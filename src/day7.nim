@@ -45,12 +45,12 @@ func `$`*(worker: Worker): string =
       $(worker.timeStarted + worker.duration)
     ]
 
-proc checkIfDone*(worker: var Worker, time: int) =
+proc checkIfDone*(worker: var Worker, time: int) {.inline.} =
   ## Updates a worker to COMPLETE status when their task is over
   if time - worker.timeStarted >= worker.duration:
     worker.status = COMPLETE
 
-proc assign*(worker: var Worker, nodeName: char, time, baseTaskTime: int) =
+proc assign*(worker: var Worker, nodeName: char, time, baseTaskTime: int) {.inline.} =
   ## Assign a worker to a new task
   worker.status = BUSY
   worker.nodeName = nodeName
@@ -91,7 +91,6 @@ func kahnsAlgorithm*(graph: Graph): string  =
       nodeName: char
       node: NodeValue
 
-    # couldnt find a better way to get the first element out of the set :(
     nodeName = depsMet.pop()
     node = graphCopy[nodeName]
     result &= nodeName
