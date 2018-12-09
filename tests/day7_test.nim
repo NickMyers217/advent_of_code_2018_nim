@@ -53,8 +53,3 @@ suite "Day 7 tests":
       time = graph.kahnsAlgorithmWithScheduling(2, 0)
 
     check(time == 15)
-
-  test "Can print the answers":
-    printAnswers("res/day7.txt", false)
-    require(true)
-

@@ -75,7 +75,3 @@ suite "Day 6 tests":
     var grid = newGrid(points)
     grid.markPointsWithTotalLessThan(32)
     check(grid.safeArea() == 16)
-
-  test "Can print the answers!":
-    printAnswers("res/day6.txt")
-    require(true)

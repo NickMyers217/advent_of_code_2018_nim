@@ -50,7 +50,3 @@ suite "Day 5 tests":
   test "Can find the most compact polymer":
     var polymer = testData[0]
     check(polymer.findMostCompact(false) == 4)
-
-  test "Can print the answers!":
-    printAnswers("res/day5.txt")
-    require(true)

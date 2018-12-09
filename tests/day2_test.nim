@@ -39,8 +39,3 @@ suite "Day 2 tests":
 
   test "Can find the common letters from the correct ids":
     check(getTargetBoxLetters(moreTestData) == "fgij")
-
-  test "Can print the answers":
-    printAnswers("res/day2.txt")
-    require(true)
-

@@ -41,8 +41,3 @@ suite "Day 8 tests":
       tree.children[0].getValue() == 33
       tree.children[1].getValue() == 0
       tree.children[1].children[0].getValue() == 99
-
-  test "Can print the answers":
-    printAnswers("res/day8.txt")
-    require(true)
-

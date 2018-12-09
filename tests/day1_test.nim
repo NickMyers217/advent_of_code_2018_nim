@@ -23,8 +23,3 @@ suite "Day 1 tests":
       firstRecurringFrequency(@[3, 3, 4, -2, -4]) == 10
       firstRecurringFrequency(@[-6, 3, 8, 5, -6]) == 5
       firstRecurringFrequency(@[7, 7, -2, -7, -4]) == 14
-
-  test "Can print the answers":
-    printAnswers("res/day1.txt")
-    require(true)
-

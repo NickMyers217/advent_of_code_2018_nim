@@ -84,7 +84,3 @@ suite "Day 4 tests":
       minute == 45
       guard.id == 99
       minute * guard.id == 4455
-
-  test "Can print the answers":
-    printAnswers("res/day4.txt")
-    require(true)

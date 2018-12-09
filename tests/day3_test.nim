@@ -74,8 +74,3 @@ suite "Day 3 tests":
       .map(proc(e: Rect): int = e.id)
 
     check(overlaps == @[3])
-
-  test "Can log the answer for part one and two":
-    printAnswers("res/day3.txt")
-    require(true)
-
