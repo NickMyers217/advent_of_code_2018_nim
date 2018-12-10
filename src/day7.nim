@@ -128,15 +128,15 @@ func kahnsAlgorithmWithScheduling*(
   proc handleWorker(w: var Worker) {.closure.} =
     ## Step a worker through his workflow
     if w.status == IDLE:
-      if debug: echo w
+      if debug: debugEcho w
       if depsMet.len > 0:
         w.assign(depsMet.pop(), time, baseTaskTime)
         finishTimes.push(w.timeStarted + w.duration)
     if w.status == BUSY:
-      if debug: echo w
+      if debug: debugEcho w
       w.checkIfDone(time)
     if w.status == COMPLETE:
-      if debug: echo w
+      if debug: debugEcho w
       for key in items[char](graphCopy[w.nodeName].nextNodes):
         graphCopy[key].prevNodes.excl(w.nodeName)
         if graphCopy[key].prevNodes == {}: depsMet.push(key)
@@ -145,7 +145,7 @@ func kahnsAlgorithmWithScheduling*(
       w.status = IDLE # ready to work!
 
   while workers.filterIt(it.status == BUSY).len > 0 or depsMet.len > 0:
-    if debug: echo "Time: ", time
+    if debug: debugEcho "Time: ", time
 
     # Handle each worker
     for i in workers.low .. workers.high:
