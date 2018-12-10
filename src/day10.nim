@@ -66,17 +66,17 @@ proc mapPointsToSky*(points: seq[Point]): (int, int, Vec) =
 
   result = (width, height, offset)
 
-func generateLookup*(points: seq[Point]): Table[Vec, int] =
+func generateLookup*(points: seq[Point], offset: Vec): Table[Vec, int] =
   result = initTable[Vec, int]()
   for i, p in points:
     ## TODO: should probably throw if this was true
-    discard result.hasKeyOrPut(p.position, i)
+    discard result.hasKeyOrPut(p.position + offset, i)
 
 func newGrid*(points: seq[Point]): Grid =
   ## Create a new grid
   let
     (width, height, offset) = mapPointsToSky(points)
-    pointsLookup = generateLookup(points)
+    pointsLookup = generateLookup(points, offset)
 
   result = Grid(
     width: width,
@@ -91,11 +91,17 @@ func `$`*(grid: Grid): string =
   ## Visualize a grid's night sky as a string
   result = ""
   for y in 0 ..< grid.height:
-    var row = ""
+    var
+      foundAtLeastOne = false
+      row = ""
     for x in 0 ..< grid.width:
-      if grid.pointsLookup.hasKey((x, y)): row &= "#"
-      else: row &= '.'
-    result &= row & "\n"
+      if grid.pointsLookup.hasKey((x, y)):
+        foundAtLeastOne = true
+        row &= "#"
+      else:
+        row &= '.'
+    if foundAtLeastOne:
+      result &= row & "\n"
 
 func checkForMessage*(grid: Grid): bool =
   ## Returns true if there is a message on the grid
@@ -112,7 +118,7 @@ func checkForMessage*(grid: Grid): bool =
     var isValid = false
     for n in neighbors:
       let vecToCheck = p.position + n
-      if grid.pointsLookup.hasKey(vecToCheck):
+      if grid.pointsLookup.hasKey(vecToCheck + grid.offset):
         isValid = true
 
     if not isValid:
@@ -131,7 +137,7 @@ proc advance*(grid: var Grid, n: int = 1) =
 
   # Update the grid accordingly
   let (width, height, offset) = mapPointsToSky(grid.points)
-  grid.pointsLookup = generateLookup(grid.points)
+  grid.pointsLookup = generateLookup(grid.points, offset)
   grid.width = width
   grid.height = height
   grid.offset = offset
@@ -153,7 +159,7 @@ proc printAnswers(filePath: string) =
     grid.advance()
     inc time
 
-  ## This thing is large, check the bottom right corner in a tiny font
+  ## This thing is wide, check the bottom right corner in a tiny font
   echo grid
   echo time
 

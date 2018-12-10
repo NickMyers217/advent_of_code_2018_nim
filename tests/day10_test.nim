@@ -78,15 +78,9 @@ suite "Day 10 tests":
     let points = testData.map(initPoint)
     var grid = newGrid(points)
 
-    echo grid
     check grid.messageFound == false
     grid.advance()
-    echo grid
     check grid.messageFound == false
     grid.advance(2)
-    echo grid
     check grid.messageFound == true
-    grid.advance()
-    echo grid
-    check grid.messageFound == false
 
