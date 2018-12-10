@@ -1,4 +1,4 @@
-import strutils, sequtils, strscans, tables
+import strutils, sequtils, strscans, tables, algorithm
 
 type
   ## A 2d vector
@@ -48,18 +48,20 @@ proc mapPointsToSky*(points: seq[Point]): (int, int, Vec) =
 
   # Determine the width and height of the grid
   var
-    offset: Vec = (0, 0)
-    xBounds = (0, 0)
-    yBounds = (0, 0)
-    width = 0
-    height = 0
+    sortedX = points
+      .map(proc(p: Point): int = p.position.x)
+      .sorted(cmp[int])
+    sortedY = points
+      .map(proc(p: Point): int = p.position.y)
+      .sorted(cmp[int])
+    xBounds, yBounds, offset: Vec
+    width, height: int
 
-  for point in points:
-    let (x, y) = point.position
-    if x < xBounds[0]: xBounds[0] = x
-    if x > xBounds[1]: xBounds[1] = x
-    if y < yBounds[0]: yBounds[0] = y
-    if y > yBounds[1]: yBounds[1] = y
+  xBounds[0] = sortedX[0]
+  xBounds[1] = sortedX[sortedX.high]
+  yBounds[0] = sortedY[0]
+  yBounds[1] = sortedY[sortedY.high]
+
   width = xBounds[1] - xBounds[0] + 1
   height = yBounds[1] - yBounds[0] + 1
   offset = (xBounds[0] * -1, yBounds[0] * -1)
@@ -91,17 +93,11 @@ func `$`*(grid: Grid): string =
   ## Visualize a grid's night sky as a string
   result = ""
   for y in 0 ..< grid.height:
-    var
-      foundAtLeastOne = false
-      row = ""
+    var row = ""
     for x in 0 ..< grid.width:
-      if grid.pointsLookup.hasKey((x, y)):
-        foundAtLeastOne = true
-        row &= "#"
-      else:
-        row &= '.'
-    if foundAtLeastOne:
-      result &= row & "\n"
+      if grid.pointsLookup.hasKey((x, y)): row &= "#"
+      else: row &= '.'
+    result &= row & "\n"
 
 func checkForMessage*(grid: Grid): bool =
   ## Returns true if there is a message on the grid
@@ -115,13 +111,11 @@ func checkForMessage*(grid: Grid): bool =
   ]
 
   for p in grid.points:
-    var isValid = false
-    for n in neighbors:
-      let vecToCheck = p.position + n
-      if grid.pointsLookup.hasKey(vecToCheck + grid.offset):
-        isValid = true
-
-    if not isValid:
+    block checkPoint:
+      for n in neighbors:
+        let vecToCheck = p.position + n
+        if grid.pointsLookup.hasKey(vecToCheck + grid.offset):
+          break checkPoint
       return false
 
 proc advance*(point: var Point, n: int = 1) =
@@ -159,7 +153,7 @@ proc printAnswers(filePath: string) =
     grid.advance()
     inc time
 
-  ## This thing is wide, check the bottom right corner in a tiny font
+  # Check this with a TINY font
   echo grid
   echo time
 
