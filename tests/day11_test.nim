@@ -56,13 +56,3 @@ suite "Day 11 Tests":
         grid = initGrid(serial)
       check grid.getTotalPower(cornerPoint, size) == totalPower
 
-  test "Can find the corner of the largest section of any size":
-    for testCase in partTwoTestData:
-      let
-        (cornerPoint, serial, size, totalPower) = testcase
-        grid = initGrid(serial)
-        (resultCorner, resultSize) = grid.getLargest()
-      check:
-        resultCorner == cornerPoint
-        resultSize == size
-

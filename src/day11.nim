@@ -43,19 +43,9 @@ func getPower*(grid: Grid, point: Point): int =
   assert i >= 0 and i < GRID_LEN
   result = grid.powerLevels[i]
 
-## A Cache of (Point, size) => power
-var cache = initTable[(Point, int), int]()
 proc getTotalPower*(grid: Grid, cornerPoint: Point, size: int = 3): int =
   ## Gets the total power for a section of size starting at cornerPoint
   ## returns 0 if there is not enough space for a full 3x3 section
-  #if cache.hasKey((cornerPoint, size)):
-  #  return cache[(cornerPoint, size)]
-
-  #var largestSizeCached = 0
-  #for s in 1 .. size:
-  #  if cache.hasKey((cornerPoint, s)): largestSizeCached = s
-  #  break
-
   var total = 0
   for yOff in 0 ..< size:
     for xOff in 0 ..< size:
