@@ -87,13 +87,9 @@ proc largestArea*(grid: Grid): int =
   for y in 1 .. GRID_SIZE - 2:
     for x in 1 .. GRID_SIZE - 2:
       let pointId = grid.values[y][x]
-      if pointId > -1:
-        ## NOTE: i dont think this language has short circuit evaluation, so
-        ## its important that the top if guards this bottom one to avoid a
-        ## compilation error
-        if not (pointId in infinites):
-          discard counts.getOrDefault(pointId)
-          counts.inc(pointId)
+      if pointId > -1 and pointId notin infinites:
+        discard counts.getOrDefault(pointId)
+        counts.inc(pointId)
   result = counts.largest.val
 
 proc safeArea*(grid: Grid): int =
