@@ -43,65 +43,53 @@ func getPower*(grid: Grid, point: Point): int =
   assert i >= 0 and i < GRID_LEN
   result = grid.powerLevels[i]
 
-proc getTotalPower*(grid: Grid, cornerPoint: Point, size: int = 3): int =
-  ## Gets the total power for a section of size starting at cornerPoint
+## A silly global cache to help speed things up
+var powerCache = initTable[(Point, int), int]()
+proc getTotalPower*(grid: Grid, corner: Point, size: int = 1): int =
+  ## Gets the total power for a section of size starting at corner
   ## returns 0 if there is not enough space for a full 3x3 section
-  var total = 0
+  if size == 1:
+    return grid.getPower(corner)
+  if powerCache.hasKey((corner, size)):
+    return powerCache[(corner, size)]
+
+  var total = grid.getTotalPower(corner, size - 1)
   for yOff in 0 ..< size:
-    for xOff in 0 ..< size:
-      let p: Point = (cornerPoint.x + xOff, cornerPoint.y + yOff)
-      if p.x < 1 or p.x > GRID_SIZE or p.y < 1 or p.y > GRID_SIZE:
-        return 0
-      else:
-        total += grid.getPower(p)
+    if yOff == size - 1:
+      for xOff in 0 ..< size:
+        total += grid.getPower((corner.x + xOff, corner.y + yOff))
+    else:
+      total += grid.getPower((corner.x + (size - 1), corner.y + yOff))
+
+  powerCache[(corner, size)]=total
   result = total
 
-func getLargest3x3*(grid: Grid): Point =
-  ## Gets the corner point of the 3x3 section with the largest total power
-  result = (0, 0)
-  var
-    largest = 0
-    cache = initTable[Point, int]() # a helpful cache
-  for y in 1 .. GRID_SIZE:
-    for x in 1 .. GRID_SIZE:
-      var total: int
-      if cache.hasKey((x, y)):
-        total = cache[(x, y)]
-      else:
-        total = grid.getTotalPower((x, y))
-        cache.add((x, y), total)
-      if total > largest:
-        largest = total
-        result = (x, y)
-
-func getLargest*(grid: Grid): (Point, int) =
+proc getLargest*(
+  grid: Grid,
+  minSize: int = 1,
+  maxSize: int = GRID_SIZE
+): (Point, int) =
   ## Gets the corner point of any section with the largest total power
   ## also return the size of the section
-  var
-    largest = 0
-    cache = initTable[(Point, int), int]() # a helpful cache
+  var largest = 0
   for y in 1 .. GRID_SIZE:
     for x in 1 .. GRID_SIZE:
-      for size in 1 .. GRID_SIZE:
-        if x + size > GRID_SIZE or y + size > GRID_SIZE:
+      for size in minSize .. maxSize:
+        if x + (size - 1) > GRID_SIZE or y + (size - 1) > GRID_SIZE:
           break
-
-        var total: int
-        if cache.hasKey(((x, y), size)):
-          total = cache[((x, y), size)]
-        else:
-          total = grid.getTotalPower((x, y), size)
-          cache.add(((x, y), size), total)
-
+        let total = grid.getTotalPower((x, y), size)
         if total > largest:
           largest = total
           result = ((x, y), size)
 
 proc printAnswers(input: int) =
-  let grid = initGrid(input)
+  let
+    grid = initGrid(input)
+    (point1, size1) = grid.getLargest(3, 3)
+    (point2, size2) = grid.getLargest()
 
-  echo grid.getLargest3x3()
-  echo grid.getLargest()
+  echo point1.x, ",", point1.y
+  echo point2.x, ",", point2.y, ",", size2
 
 when isMainModule:
   const input = 2866

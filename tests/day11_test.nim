@@ -12,8 +12,7 @@ const testData = @[
 
 const moreTestData = @[
   # ((x, y), serial, totalPower)
-  ((33, 45), 18, 29),
-  ((21, 61), 42, 30)
+  ((33, 45), 18, 29)
 ]
 
 const partTwoTestData = @[
@@ -40,19 +39,23 @@ suite "Day 11 Tests":
       let
         (cornerPoint, serial, totalPower) = testCase
         grid = initgrid(serial)
-      check grid.getTotalPower(cornerPoint) == totalPower
+      check grid.getTotalPower(cornerPoint, 3) == totalPower
+
+  test "Can obtain the total power of an n by n section":
+    for testCase in partTwoTestData:
+      let
+        (cornerPoint, serial, size, totalPower) = testcase
+        grid = initGrid(serial)
+      check grid.getTotalPower(cornerPoint, size) == totalPower
 
   test "Can find the corner of the largest 3x3 section":
     for testCase in moreTestData:
       let
         (cornerPoint, serial, totalPower) = testCase
         grid = initGrid(serial)
-      check grid.getLargest3x3() == cornerPoint
+        (point, size) = grid.getLargest(3, 3)
+      check:
+        point == cornerPoint
+        size == 3
 
-  test "Can find the total power of an n by n section":
-    for testCase in partTwoTestData:
-      let
-        (cornerPoint, serial, size, totalPower) = testcase
-        grid = initGrid(serial)
-      check grid.getTotalPower(cornerPoint, size) == totalPower
 
