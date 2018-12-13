@@ -30,7 +30,7 @@ proc adjust*(list: var PotList) =
         break
       if forward: node = node.next
       else: node = node.prev
-  
+
   proc trim(
     list: var PotList,
     curNode: DoublyLinkedNode[Pot],
@@ -46,7 +46,7 @@ proc adjust*(list: var PotList) =
     for i in 0 ..< 5:
       if forward: list.remove(list.head)
       else: list.remove(list.tail)
-    
+
   list.padForApproachingPlant(list.head, true)
   list.padForApproachingPlant(list.tail, false)
   list.trim(list.head, true)
@@ -96,13 +96,19 @@ proc nextGen*(list: PotList, lookup: Table[string, char]): PotList =
   result.append(list.tail.value)
   adjust(result)
 
-proc advance*(list: PotList, lookup: Table[string ,char], n: int64): int64 =
+proc advance*(
+  list: PotList,
+  lookup: Table[string ,char],
+  n: int64,
+  debug: bool = false
+): int64 =
   ## Advance `list` using `lookup` by `n` generations then
   ## return the sum of all pot numbers containing plants
   var
     listCopy = list
     lastSum, lastDiff: int64
   for i in 1 .. n:
+    if debug: debugEcho listToState(listCopy)
     listCopy = listCopy.nextGen(lookup)
     let
       sum: int64 = sumPotNumbers(listCopy)
