@@ -135,5 +135,3 @@ when isMainModule:
 
     echo carts[0].location.x, ",", carts[0].location.y
 
-
-
