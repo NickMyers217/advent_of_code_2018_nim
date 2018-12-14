@@ -1,121 +1,139 @@
-import strutils, sequtils, tables, sets, algorithm
+import lists, strutils, sequtils, algorithm, sets
 
 type
-  Point* = tuple[x, y: int]
+  Point = tuple[x, y: int]
+  Turn = enum LeftTurn, NoTurn, RightTurn
+  Direction = enum Up, Down, Left, Right
+  Cart = ref object
+    location: Point
+    direction: Direction
+    turns: DoublyLinkedRing[Turn]
+  Carts = seq[Cart]
+  Tracks = seq[string]
 
-  Move* = enum left, straight, right
+proc getTurnRing(): DoublyLinkedRing[Turn] =
+  result = initDoublyLinkedRing[Turn]()
+  result.append(LeftTurn)
+  result.append(NoTurn)
+  result.append(RightTurn)
 
-  Cart* = ref object
-    location*: Point
-    symbol*: char
-    nextMove*: Move
-    removed*: bool
+proc newCart(location: Point, direction: Direction): Cart =
+  result = Cart(
+    location: location,
+    direction: direction,
+    turns: getTurnRing()
+  )
 
-proc newCart*(point: Point, symbol: char): Cart =
-  result = Cart(location: point, symbol: symbol, nextMove: left, removed: false)
+proc cmp(a, b: Cart): int =
+  if a.location.y < b.location.y: result = -1
+  if a.location.y == b.location.y: result = cmp(a.location.x, b.location.x)
+  else: result = 1
 
-proc `$`*(cart: Cart): string =
-  result = "$1 @ $2" % [ $cart.symbol, $cart.location ]
-
-proc tick*(cart: var Cart, tracks: seq[string]) =
-  proc turnLeft(cart: Cart): char {.closure.} =
-    if cart.symbol == '>': return '^'
-    if cart.symbol == '^': return '<'
-    if cart.symbol == '<': return 'v'
-    if cart.symbol == 'v': return '>'
-
-  proc turnRight(cart: Cart): char {.closure.} =
-    if cart.symbol == '>': return 'v'
-    if cart.symbol == 'v': return '<'
-    if cart.symbol == '<': return '^'
-    if cart.symbol == '^': return '>'
-
-  if cart.symbol == '>': cart.location.x += 1
-  elif cart.symbol == '<': cart.location.x -= 1
-  elif cart.symbol == 'v': cart.location.y += 1
-  elif cart.symbol ==  '^': cart.location.y -= 1
-
-  let
-    cell = tracks[cart.location.y][cart.location.x]
-    isHorizontal = cart.symbol in { '<', '>' }
-
-  if cell == '/':
-    if isHorizontal: cart.symbol = cart.turnLeft()
-    else: cart.symbol = cart.turnRight()
-  elif cell == '\\':
-    if isHorizontal: cart.symbol = cart.turnRight()
-    else: cart.symbol = cart.turnLeft()
-  elif cell == '+':
-    case cart.nextMove
-    of left:
-      cart.symbol = cart.turnLeft()
-      cart.nextMove = straight
-    of straight:
-      cart.nextMove = right
-    of right:
-      cart.symbol = cart.turnRight()
-      cart.nextMove = left
-
-proc parseInput*(input: string): (seq[string], seq[Cart]) =
+proc parseInput(input: string): (Tracks, Carts) =
   result = (input.splitLines().filterIt(it != ""), @[])
   for y, row in result[0]:
     for x, c in row:
-      if c in { '^', 'v', '>', '<' }:
-        result[1].add(newCart((x, y), c))
+      case c
+      of '^':
+        result[0][y][x] = '|'
+        result[1].add newCart((x, y), Up)
+      of 'v':
+        result[0][y][x] = '|'
+        result[1].add newCart((x, y), Down)
+      of '<':
+        result[0][y][x] = '-'
+        result[1].add newCart((x, y), Left)
+      of '>':
+        result[0][y][x] = '-'
+        result[1].add newCart((x, y), Right)
+      else: continue
 
-proc findFirstCollision*(tracks: seq[string], carts: seq[Cart]): Point =
-  var
-    cartsCopy = carts
-    collision = false
-  while true:
-    for i in cartsCopy.low .. cartsCopy.high:
-      cartsCopy[i].tick(tracks)
-    var seen = initSet[Point]()
-    for cart in cartsCopy:
-      if seen.contains(cart.location):
-        return cart.location
-      else:
-        seen.incl(cart.location)
+proc tick(cart: var Cart, tracks: Tracks): void =
+  proc turnLeft(dir: Direction): Direction {.closure.} =
+    case dir
+    of Up: Left
+    of Left: Down
+    of Down: Right
+    of Right: Up
 
+  proc turnRight(dir: Direction): Direction {.closure.} =
+    case dir
+    of Up: Right
+    of Right: Down
+    of Down: Left
+    of Left: Up
+
+  let (x, y) = cart.location
+  case tracks[y][x]
+  of '/':
+    cart.direction =
+      case cart.direction
+      of Up, Down: turnRight(cart.direction)
+      of Left, Right: turnLeft(cart.direction)
+  of '\\':
+    cart.direction =
+      case cart.direction
+      of Up, Down: turnLeft(cart.direction)
+      of Left, Right: turnRight(cart.direction)
+  of '+':
+    cart.direction =
+      case cart.turns.head.value
+      of LeftTurn: turnLeft(cart.direction)
+      of NoTurn: cart.direction
+      of RightTurn: turnRight(cart.direction)
+    cart.turns.head = cart.turns.head.next
+  else: discard
+
+  case cart.direction
+  of Up: dec cart.location.y
+  of Down: inc cart.location.y
+  of Left: dec cart.location.x
+  of Right: inc cart.location.x
 
 when isMainModule:
   let input = readFile("res/day13.txt")
 
-  var (tracks, carts) = parseInput(input)
-
   ### Part 1
-  var part1Point = findFirstCollision(tracks, carts)
-  echo part1Point.x, ",", part1Point.y
+  block part1:
+    var (tracks, carts) = parseInput(input)
+    while true:
+      carts = carts.sorted(cmp)
+      for i in carts.low .. carts.high:
+        tick(carts[i], tracks)
+
+        var crashed = false
+        for j in 0..carts.high:
+          if j != i and carts[i].location == carts[j].location:
+            crashed = true
+            break
+        if crashed:
+          echo carts[i].location.x, ",", carts[i].location.y
+          break part1
 
   ### Part 2
-  var t = 0
-  while carts.filterIt(not it.removed).len > 1:
-    var seen = initSet[Point]()
+  block part2:
+    var (tracks, carts) = parseInput(input)
 
-    carts = carts
-    .filterIt(not it.removed)
-    .sorted(proc(a, b: Cart): int =
-      if $a.location.y < $b.location.y:
-        return -1
-      elif $a.location.y == $b.location.y:
-        if $a.location.x < $b.location.x: return -1
-        elif $a.location.x == $b.location.x: return 0
-        else: return 1
-      else: return 1
-    )
+    while carts.len > 1:
+      carts = carts.sorted(cmp)
 
-    for i in carts.low .. carts.high:
-      if carts[i].removed:
-        continue
-      carts[i].tick(tracks)
-      if seen.contains(carts[i].location):
-        echo "Collision @ ", $carts[i].location.x, ",", $carts[i].location.y, " on tick ", $t
+      var indicesToRemove = initSet[int]()
+      for i in carts.low .. carts.high:
+        carts[i].tick(tracks)
+
         for j in carts.low .. carts.high:
-          if carts[j].location == carts[i].location:
-            carts[j].removed = true
-      else:
-        seen.incl(carts[i].location)
+          if j != i and carts[i].location == carts[j].location:
+            indicesToRemove.incl(i)
+            indicesToRemove.incl(j)
+            echo "Collision @ ", carts[i].location
+            break
 
-    inc t
+      var newCarts = newSeq[Cart]()
+      for i, cart in carts:
+        if i notin indicesToRemove: newCarts.add(cart)
+      carts = newCarts
 
-  echo carts[0].location.x, ",", carts[0].location.y
+    echo carts[0].location.x, ",", carts[0].location.y
+
+
+
