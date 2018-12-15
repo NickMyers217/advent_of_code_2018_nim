@@ -2,7 +2,7 @@ import lists, strutils, sequtils, algorithm, sets
 
 type
   ## An x,y coordinate (origin is top left)
-  Point = tuple[x, y: int]
+  Point* = tuple[x, y: int]
   ## A cart can turn left, go straight, or turn right
   Turn = enum LeftTurn, NoTurn, RightTurn
   ## Directions a cart can travel
@@ -11,14 +11,14 @@ type
   Cart = ref object
     location: Point
     direction: Direction
-    turns: DoublyLinkedRing[Turn]
+    turns: SinglyLinkedRing[Turn]
   ## Helpful aliases
   Carts = seq[Cart]
   Tracks = seq[string]
 
-proc getTurnRing(): DoublyLinkedRing[Turn] =
+proc getTurnRing(): SinglyLinkedRing[Turn] =
   ## Constructs the turn ring for a `Cart`
-  result = initDoublyLinkedRing[Turn]()
+  result = initSinglyLinkedRing[Turn]()
   result.append(LeftTurn)
   result.append(NoTurn)
   result.append(RightTurn)
@@ -107,56 +107,63 @@ proc tick(cart: var Cart, tracks: Tracks): void =
   of Left: dec cart.location.x
   of Right: inc cart.location.x
 
+proc findFirstCollision*(input: string): Point =
+  ## Finds the location of the first collision on the tracks
+  var (tracks, carts) = parseInput(input)
+
+  while true:
+    carts = carts.sorted(cmp) # Always keep these sorted
+
+    for i in carts.low .. carts.high:
+      tick(carts[i], tracks)
+
+      ## NOTE: it is very important you check for collisions immediately
+      ## after ticking each individual cart (instead of after ticking them all)
+      ## You have to do this so you can catch the following edge case:
+      ## - before tick: -><-
+      ## - after ticking both: -<>-
+      ## The collision is transient between the carts two individual ticks
+      var crashed = false
+      for j in 0..carts.high:
+        if j != i and carts[i].location == carts[j].location:
+          crashed = true
+          return carts[i].location
+
+proc findLastcart*(input: string, debug: bool = false): Point =
+  var (tracks, carts) = parseInput(input)
+
+  while carts.len > 1:
+    carts = carts.sorted(cmp)
+
+    # A set of carts to clean off the tracks
+    var indicesToRemove = initSet[int]()
+    for i in carts.low .. carts.high:
+      carts[i].tick(tracks)
+
+      for j in carts.low .. carts.high:
+        if j != i and carts[i].location == carts[j].location:
+          # Take note of the two carts in this collision
+          indicesToRemove.incl(i)
+          indicesToRemove.incl(j)
+          if debug: debugEcho "Collision @ ", carts[i].location
+          break
+
+    # Clean up the carts
+    var newCarts = newSeq[Cart]()
+    for i, cart in carts:
+      if i notin indicesToRemove: newCarts.add(cart)
+    carts = newCarts
+
+  result = carts[0].location
+
 when isMainModule:
-  let input = readFile("res/day13.txt")
+  let
+    input = readFile("res/day13.txt")
+    firstCollision = findFirstCollision(input)
 
-  ### Part 1
-  block part1:
-    var (tracks, carts) = parseInput(input)
-    while true:
-      carts = carts.sorted(cmp) # Always keep these sorted
+  echo firstCollision.x, ",", firstCollision.y
 
-      for i in carts.low .. carts.high:
-        tick(carts[i], tracks)
+  let lastCart = findLastCart(input, true)
+  echo lastCart.x, ",", lastCart.y
 
-        ## NOTE: it is very important you check for collisions immediately
-        ## after ticking each individual cart (instead of after ticking them all)
-        ## You have to do this so you can catch the following edge case:
-        ## - before tick: -><-
-        ## - after ticking both: -<>-
-        ## The collision is transient between the carts two individual ticks
-        var crashed = false
-        for j in 0..carts.high:
-          if j != i and carts[i].location == carts[j].location:
-            crashed = true
-            echo carts[i].location.x, ",", carts[i].location.y
-            break part1
-
-  ### Part 2
-  block part2:
-    var (tracks, carts) = parseInput(input)
-
-    while carts.len > 1:
-      carts = carts.sorted(cmp)
-
-      # A set of carts to clean off the tracks
-      var indicesToRemove = initSet[int]()
-      for i in carts.low .. carts.high:
-        carts[i].tick(tracks)
-
-        for j in carts.low .. carts.high:
-          if j != i and carts[i].location == carts[j].location:
-            # Take note of the two carts in this collision
-            indicesToRemove.incl(i)
-            indicesToRemove.incl(j)
-            echo "Collision @ ", carts[i].location
-            break
-
-      # Clean up the carts
-      var newCarts = newSeq[Cart]()
-      for i, cart in carts:
-        if i notin indicesToRemove: newCarts.add(cart)
-      carts = newCarts
-
-    echo carts[0].location.x, ",", carts[0].location.y
 
