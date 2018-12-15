@@ -11,4 +11,5 @@ import
   ./day10_test,
   ./day11_test,
   ./day12_test,
-  ./day13_test
+  ./day13_test,
+  ./day14_test
