@@ -81,8 +81,6 @@ proc getResourceValueOfHughMungus(gol: GOL, n: int, debug = false): GOL =
   for i in 0 ..< n:
     let val = result.getResourceValue()
     if table.hasKeyOrPut(val, i):
-      if debug:
-        debugEcho "Pattern repeated after ", i - table[val], " iterations!"
       if repeatCount == i - table[val]:
         inc sameForNIterations
       else:
@@ -121,12 +119,12 @@ when isMainModule:
 |.||||..|.
 ...#.|..|."""
 
+  const BIG_NUM = 1_000_000_000
   let
     gol = parseInput(input)
     ten = gol.advanceNMinutes(10)
-  echo ten.getResourceValue()
+    hughMungus = gol.getResourceValueOfHughMungus(BIG_NUM, true)
 
-  const BIG_NUM = 1_000_000_000
-  let hughMungus = gol.getResourceValueOfHughMungus(BIG_NUM, true)
+  echo ten.getResourceValue()
   echo hughMungus.getResourceValue()
 
