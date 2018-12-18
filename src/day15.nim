@@ -342,10 +342,43 @@ proc play*(game: var Game, debug = false, interactive = false): void =
     game.advanceRound(debug, interactive)
     if interactive: waitForUser()
 
+proc playForElvesToWin(game: Game, debug = false, interactive = false): Game =
+  ## Advance through the state of the game, but if an elf dies, cut things short
+  ## increase the Elves attack power by 1, and try again
+  let elfCount = game.teamCounts.elves
+  var
+    currentApDelta = 1
+    currentGame: Game
+  deepCopy(currentGame, game)
+  while true:
+    # Up the elves attack power by 1
+    for ent in currentGame.entities.mvalues:
+      if ent.team == Elf:
+        inc ent.ap, currentApDelta
+    inc currentApDelta
+    if interactive:
+      waitForUser()
+    # Play the game until an elf dies, or they elves safely win
+    while currentGame.teamCounts.elves == elfCount and currentGame.teamCounts.goblins != 0:
+      currentGame.advanceRound(debug, false)
+    if currentGame.teamCounts.elves == elfCount:
+      if debug:
+        currentGame.debugRender(@[], false)
+      # We found the winner
+      break
+    else:
+      # Make a copy of the game and try again
+      deepCopy(currentGame, game)
+  result = currentGame
+
 when isMainModule:
   let input = readFile("res/day15.txt")
-  var game = newGame(input)
 
-  echo game
-  game.play(true, false)
-  echo game.tallyScore
+  var game1 = newGame(input)
+  game1.play(true, false)
+
+  let winningGame = newGame(input).playForElvesToWin(true, false)
+
+  echo game1.tallyScore
+  echo winningGame.tallyScore
+
