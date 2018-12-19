@@ -6,7 +6,8 @@ The best way for me to pick up a new language is to jump right in and solve some
 
 The problems are on the [AOC website](https://adventofcode.com/2018/).
 
-While many people approach AOC competitively and try to solve the problems for speed, my code is optimized for different goals.
+While many people approach AOC competitively and try to solve the problems for speed, my code is *attempting* to optimize for different goals.
+
 - The code is developed with TDD (I might not do this every day due to time
     restrictions, but I really would like to. I'll try to come back and fill in
     days I miss later)
