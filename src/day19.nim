@@ -80,21 +80,33 @@ proc execute*(instruction: Instruction, registers: var Registers) =
   of Eqri: registers[c] = if registers[a] == b: 1 else: 0
   of Eqrr: registers[c] = if registers[a] == registers[b]: 1 else: 0
 
+proc sumOfDivisors(n: int): int =
+  ## Brute force calculation for the sum of all factors of n
+  result = 0
+  for d in 1 .. n:
+    if n mod d == 0: inc result, d
+
 proc execute(program: Program, registers: var Registers) =
+  ## Executes `program` on the given `registers`
   let (ipRegister, instructions) = program
   var ip = 0
 
-  var insCount: int64 = 0
   while ip >= instructions.low and ip <= instructions.high:
-    inc insCount
-
     registers[ipRegister] = ip
     instructions[ip].execute(registers)
-
-    #if registers[ipRegister] == 11:
-    #echo insCount, ": ", instructions[ip], " on ", registers, " => ", registers[ipRegister]
-    echo insCount, " ==> ", registers.foldl(a + b)
-
+    ## NOTE:
+    ## The program only hits an instruction pointer of 1 a SINGLE time
+    ## the number in the final register is of signficance here
+    ## for part 1 the number in the fith register was 1017, and after completing
+    ## the program, 1482 was in register 0. 1482 is the sum of all of 1017's
+    ## divisors!
+    ##
+    ## Extrapolating that out for part two, 10551417 is the number in register 5
+    ## and the sum of all of its divisors is 14068560
+    if ip == 1:
+      echo instructions[ip], " on ", registers, " => ", registers[ipRegister]
+      registers[0] = sumOfDivisors(registers[5])
+      return
     ip = registers[ipRegister] + 1
 
 proc printAnswers(input: string) =
@@ -102,10 +114,11 @@ proc printAnswers(input: string) =
 
   var registers: Registers = [ 0, 0, 0, 0, 0, 0 ]
   program.execute(registers)
-  echo registers[0]
 
   var moreRegisters: Registers = [ 1, 0, 0, 0, 0, 0 ]
   program.execute(moreRegisters)
+
+  echo registers[0]
   echo moreRegisters[0]
 
 when isMainModule:
