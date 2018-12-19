@@ -52,7 +52,7 @@ proc parseInstruction(input: string): Instruction =
     echo "Error parsing Instruction!"
     assert false
 
-proc parseProgram(input: string): Program =
+proc parseProgram*(input: string): Program =
   ## Parse a whole program and return the IP register and the instructions
   let lines = input.splitLines().filterIt(it != "")
   var ip: int
@@ -86,7 +86,7 @@ proc sumOfDivisors(n: int): int =
   for d in 1 .. n:
     if n mod d == 0: inc result, d
 
-proc execute(program: Program, registers: var Registers) =
+proc execute*(program: Program, registers: var Registers, useMathMagic = false) =
   ## Executes `program` on the given `registers`
   let (ipRegister, instructions) = program
   var ip = 0
@@ -103,7 +103,7 @@ proc execute(program: Program, registers: var Registers) =
     ##
     ## Extrapolating that out for part two, 10551417 is the number in register 5
     ## and the sum of all of its divisors is 14068560
-    if ip == 1:
+    if ip == 1 and useMathMagic:
       echo instructions[ip], " on ", registers, " => ", registers[ipRegister]
       registers[0] = sumOfDivisors(registers[5])
       return
@@ -113,24 +113,15 @@ proc printAnswers(input: string) =
   let program = parseProgram(input)
 
   var registers: Registers = [ 0, 0, 0, 0, 0, 0 ]
-  program.execute(registers)
+  program.execute(registers, true)
 
   var moreRegisters: Registers = [ 1, 0, 0, 0, 0, 0 ]
-  program.execute(moreRegisters)
+  program.execute(moreRegisters, true)
 
   echo registers[0]
   echo moreRegisters[0]
 
 when isMainModule:
   let input = readFile("./res/day19.txt")
-  let testInput = """
-#ip 0
-seti 5 0 1
-seti 6 0 2
-addi 0 1 0
-addr 1 2 3
-setr 1 0 0
-seti 8 0 4
-seti 9 0 5"""
 
   printAnswers(input)

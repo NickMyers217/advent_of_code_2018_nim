@@ -15,4 +15,6 @@ import
   ./day14_test,
   ./day15_test,
   ./day16_test,
-  ./day17_test
+  ./day17_test,
+  # TODO: day 18? (really tired of cellular automata)
+  ./day19_test
