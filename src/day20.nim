@@ -1,4 +1,4 @@
-import strutils, tables, deques, sets, sequtils
+import strutils, tables, deques, sets, sequtils, threadpool, cpuinfo
 
 type
   ## 2d vectors (really tired of making this type every day lol)
@@ -132,18 +132,12 @@ proc initFacilityMap(instructions: string, startPos: Vec = (0, 0)): FacilityMap 
     graph: initGraph(instructions)
   )
 
-proc findFarthestRoom(facility: FacilityMap, n = 1000): (Vec, int, int) =
-  ## Test each room in the facility to see how many doors are on the shortest path
-  ## to reach that room from the start. Return the location for the room who's path is
-  ## the most doors away, as well as the number of doors. Also include a count of the
-  ## rooms that were at least `n` doors away from the start.
-  ##
-  ## This is probably the worst most brute force way to do this, but I think it is
-  ## pretty simple and elegant. Maybe i'll look into speeding it up with multi-threading
+proc processChunk(facility: FacilityMap, chunk: seq[Vec], n = 1000): (Vec, int, int) =
   result = (facility.startPos, 0, 0)
+  let chunkLen = chunk.len
   var i = 1
-  for goalPos in facility.graph.keys:
-    echo "Processing room ", i, " out of ", facility.graph.len
+  for goalPos in chunk:
+    echo "Processing room ", i, " out of ", chunkLen
     if goalPos != facility.startPos:
       let path = facility.graph.breadthFirstSearch(facility.startPos, goalPos)
       if path.len > result[1]:
@@ -152,6 +146,36 @@ proc findFarthestRoom(facility: FacilityMap, n = 1000): (Vec, int, int) =
       if path.len >= n:
         inc result[2]
     inc i
+
+proc findFarthestRoom(facility: FacilityMap, n = 1000): (Vec, int, int) =
+  ## Test each room in the facility to see how many doors are on the shortest path
+  ## to reach that room from the start. Return the location for the room who's path is
+  ## the most doors away, as well as the number of doors. Also include a count of the
+  ## rooms that were at least `n` doors away from the start.
+  ##
+  ## This is probably the worst most brute force way to do this, but I think it is
+  ## pretty simple and elegant. I tried to speed it up with multi-threading but it
+  ## is still really damn slow. Oh well.
+
+  let chunkCount = countProcessors() # How many threads do we want to spawn
+
+  echo "Chunking for ", chunkCount, " cpu cores..."
+
+  var positions: seq[Vec] = @[]
+  for goalPos in facility.graph.keys:
+    positions.add(goalPos)
+  var chunks = positions
+    .distribute(chunkCount)
+    .mapIt(spawn facility.processChunk(it, n))
+
+  result = (facility.startPos, 0, 0)
+  for res in chunks:
+    let (pos, pathLen, farCount) = ^res
+    if pathLen > result[1]:
+      result[0] = pos
+      result[1] = pathLen
+    inc result[2], farCount
+
 
 when isMainModule:
   let
