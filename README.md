@@ -1,4 +1,4 @@
-## Advent of Code 2018 Nim
+## Learning Nim with Advent of Code 2018 (Cellular Automata and Assembler Edition)
 
 I have been wanting to learn Nim for a while now since it is a promising new language that does a lot of things the way I like.
 
