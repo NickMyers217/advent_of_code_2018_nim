@@ -1,29 +1,35 @@
-import strutils, sequtils, sets, tables
+import strutils, sequtils, sets, tables, heapqueue
 
 type
+  ## 2d vector
   Vec = tuple[x, y: int]
+  ## The region types
   Region = enum Rocky, Wet, Narrow
+  ## Cell data
   Cell = tuple
     geologicalIndex, erosionLevel: int
     region: Region
+  ## A grid of cells
   Map = seq[seq[Cell]]
+  ## A cave contains its width and depth, the location of the target
+  ## and the grid of cells
   Cave = ref object
     width, depth: int
     targetLocation: Vec
     map: Map
+  ## The different tools we can equip
   Tool = enum Torch Gear Neither
+  ## A move we can make through the cave
+  Move = tuple[vec: Vec, tool: Tool]
 
 ## Vector math helpers
 proc `-`(a, b: Vec): Vec {.inline.} = (x: a.x - b.x, y: a.y - b.y)
 proc `+`(a, b: Vec): Vec {.inline.} = (x: a.x + b.x, y: a.y + b.y)
-proc `*`(a: int, b: Vec): Vec {.inline.} = (x: a * b.x, y: a * b.y)
-proc down(a: Vec): Vec {.inline.} = a + (0,1)
 proc up(a: Vec): Vec {.inline.} = a - (0,1)
-proc right(a: Vec): Vec {.inline.} = a + (1,0)
 proc left(a: Vec): Vec {.inline.} = a - (1,0)
-proc manhattan(a, b: Vec): int {.inline.} = abs(b.x - a.x) + abs(b.y - a.y)
 
 proc calcGeologicalIndex(map: Map, vec, target: Vec): int =
+  ## Calculate the geologicalIndex for `vec`
   if vec == (0, 0):
     return 0
   elif vec == target:
@@ -36,9 +42,11 @@ proc calcGeologicalIndex(map: Map, vec, target: Vec): int =
     return map[vec.left.y][vec.left.x].erosionLevel * map[vec.up.y][vec.up.x].erosionLevel
 
 proc calcErosionLevel(geologicalIndex, depth: int): int =
+  ## Calculate the erosionLevel for a given geologicalIndex
   (geologicalIndex + depth) mod 20183
 
 proc calcRegion(erosionLevel: int): Region =
+  ## Calculate the region for a given erosionLevel
   case erosionLevel mod 3
   of 0: return Rocky
   of 1: return Wet
@@ -64,9 +72,9 @@ proc `$`(cave: Cave): string =
         break
     result &= '\n'
 
-proc newCave(depth: int, targetLocation: Vec): Cave =
-  const PADDING = 55 # I just adjusted this until i stopped getting out of bounds exceptions lol
-  let width = targetLocation.x + 1 + PADDING
+proc newCave(depth: int, targetLocation: Vec, widthPadding: int = 55): Cave =
+  ## Construct a new cave
+  let width = targetLocation.x + 1 + widthPadding
   var map: Map = newSeqWith(depth, newSeq[Cell](width))
 
   for y, row in map:
@@ -85,6 +93,7 @@ proc newCave(depth: int, targetLocation: Vec): Cave =
   )
 
 proc calcTotalRiskLevel(cave: Cave): int =
+  ## Calculate the total risk level for a cave
   result = 0
   for y, row in cave.map:
     for x, col in row:
@@ -97,51 +106,50 @@ proc calcTotalRiskLevel(cave: Cave): int =
     if y == cave.targetLocation.y:
       break
 
-iterator nextMoves(current: (Vec, Tool), cave: Cave): (Vec, Tool) =
-  for tool in Tool.low .. Tool.high:
-    if tool != current[1]:
-      yield (current[0], tool)
-  for dir in @[ (1, 0), (0, 1), (-1, 0), (0, -1) ]:
-    let (x, y) = current[0] + dir
+proc worksInRegion(tool: Tool, region: Region): bool =
+  ## Determine if tool will work in the given region
+  case region
+  of Rocky: return tool in { Gear, Torch }
+  of Wet: return tool in { Gear, Neither }
+  of Narrow: return tool in { Torch, Neither }
+
+iterator nextMoves(current: Move, cave: Cave): Move =
+  ## Iterate all the next possible moves from the current move
+  for dir in @[ (0, 1), (1, 0), (0, -1), (-1, 0) ]:
+    let (x, y) = current.vec + dir
     if x < 0 or y < 0:
       continue
     let nextCell = cave.map[y][x]
-    case nextCell.region
-    of Rocky:
-      if current[1] in { Gear, Torch }: yield ((x, y), current[1])
-    of Wet:
-      if current[1] in { Gear, Neither }: yield ((x, y), current[1])
-    of Narrow:
-      if current[1] in { Torch, Neither }: yield ((x, y), current[1])
+    if current.tool.worksInRegion(nextCell.region):
+      yield ((x, y), current.tool)
+  for tool in Tool.low .. Tool.high:
+    if tool != current.tool and tool.worksInRegion(cave.map[current.vec.y][current.vec.x].region):
+      yield (current.vec, tool)
 
-proc findQuickestPath(cave: Cave): seq[(Vec, Tool)] =
-  ## Use A* to find the quickest path to the target
+proc findQuickestPath(cave: Cave, start, goal: Move): seq[(Vec, Tool)] =
+  ## Use A* to find the quickest path to the target, we didn't really
+  ## even need a heuristic function so I didn't use one because I am lazy
   var
-    closedSet = initSet[(Vec, Tool)]()
-    openSet = initSet[(Vec, Tool)]()
-    cameFrom = initTable[(Vec, Tool), (Vec, Tool)]()
-    gScore = initTable[(Vec, Tool), int]()
-    fScore = initTable[(Vec, Tool), int]()
+    closedSet = initSet[Move]()
+    openSet = initSet[Move]()
+    cameFrom = initTable[Move, Move]()
+    gScore = initTable[Move, int]()
+    fScore = initTable[Move, int]()
 
-  openSet.incl(((0, 0), Torch))
-  gScore.add(((0, 0), Torch), 0)
-  fScore.add(((0, 0), Torch), 0)
+  openSet.incl(start)
+  gScore.add(start, 0)
+  fScore.add(start, 0)
 
   while openSet.len > 0:
-    var
-      smallest = high(int)
-      current: (Vec, Tool)
-    for item in openSet.items:
-      if fScore[item] < smallest:
-        smallest = fScore[item]
-    for item in openSet.items:
-      if fScore[item] == smallest:
-        current = item
+    # A heap queue of (fScore, Move) candidates to quickly pick the cheapest move
+    var moveQueue = newHeapQueue[(int, Move)]()
+    for move in openSet.items:
+      moveQueue.push((fScore[move], move))
+    var current = moveQueue.pop()[1]
 
-    if current[0] == cave.targetLocation:
+    if current == goal:
+      # Reassemble the path
       var path =  @[ current ]
-      if current[1] != Torch:
-        path.add((current[0], Torch))
       while cameFrom.hasKey(current):
         current = cameFrom[current]
         path = @[current].concat(path)
@@ -150,12 +158,16 @@ proc findQuickestPath(cave: Cave): seq[(Vec, Tool)] =
     openSet.excl(current)
     closedSet.incl(current)
 
+    # Process the next moves which are either not moving and switching tools
+    # or moving to any adjacent cell that is in bounds and valid for our
+    # current tool
     for n in current.nextMoves(cave):
       if n in closedSet:
         continue
 
       let
-        timeCost = if n[1] != current[1]: 7 else: 1
+        # It costs 7 minutes to switch a tool or 1 to keep the same tool
+        timeCost = if n.tool != current.tool: 7 else: 1
         tempGScore = gScore[current] + timeCost
 
       if n notin openSet: openSet.incl(n)
@@ -167,6 +179,7 @@ proc findQuickestPath(cave: Cave): seq[(Vec, Tool)] =
         fScore[n] = gScore[n]
 
 proc totalTime(path: seq[(Vec, Tool)]): int =
+  ## Calculate the total time it would take to traverse a path
   result = 0
   var prev: Tool = Torch
   for move in path:
@@ -187,6 +200,6 @@ when isMainModule:
     echo cave.calcTotalRiskLevel()
 
   block part2:
-    let path = cave.findQuickestPath()
-    echo path.totalTime() - 5 # I was off by 5, but I don't know why... bummer
+    let path = cave.findQuickestPath(((0, 0), Torch), (cave.targetLocation, Torch))
+    echo path.totalTime()
 
